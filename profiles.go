@@ -55,7 +55,7 @@ func (ffxp FirefoxProfilesDefaultImpl) IsProfileUsed(profileName string) (bool, 
     for _, p := range processes {
         name, _ := p.Name()
         args, _ := p.Cmdline()
-        if name == "firefox" && strings.Contains(args, fmt.Sprintf("-P %s", profileName)) {
+        if strings.HasPrefix(name, "firefox") && strings.Contains(args, fmt.Sprintf("-P %s", profileName)) {
             return true, nil
         }
     }
