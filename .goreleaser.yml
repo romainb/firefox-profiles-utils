@@ -1,0 +1,17 @@
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - skip: true
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^build:'
+      - '^ci:'
