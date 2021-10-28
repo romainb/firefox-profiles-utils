@@ -34,7 +34,8 @@ func NewWithDefaultPath() FirefoxProfiles {
     case "windows":
         return FirefoxProfilesDefaultImpl{filepath.Join(os.Getenv("APPDATA"), "Mozilla", "Firefox", "Profiles")}
     case "darwin":
-        return FirefoxProfilesDefaultImpl{filepath.Join(userHome, "Library", "Application Support", "Firefox", "Profiles")}
+        return FirefoxProfilesDefaultImpl{
+            filepath.Join(userHome, "Library", "Application Support", "Firefox", "Profiles")}
     case "linux":
         return FirefoxProfilesDefaultImpl{filepath.Join(userHome, ".mozilla", "firefox")}
     default:
