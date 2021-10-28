@@ -18,9 +18,10 @@ type FirefoxProfiles interface {
     IsProfileUsed(profileName string) (bool, error)
     GetProfilesList() ([]string, error)
     GetProfilesPath() string
+    GetProfilesMatching(regex *regexp.Regexp) ([]string, error)
 }
 
-// FirefoxProfilesDefaultImpl implements FirefoxProfiles
+// FirefoxProfilesDefaultImpl implements FirefoxProfiles.
 type FirefoxProfilesDefaultImpl struct {
     // ProfilesPath Firefox profiles directory path.
     ProfilesPath string
@@ -31,11 +32,12 @@ func NewWithDefaultPath() FirefoxProfiles {
     userHome, _ := os.UserHomeDir()
     switch currentOs := runtime.GOOS; currentOs {
     case "windows":
-        return FirefoxProfilesDefaultImpl{filepath.Join(userHome, `AppData\Roaming\Mozilla\Firefox\Profiles`)}
+        return FirefoxProfilesDefaultImpl{filepath.Join(os.Getenv("APPDATA"), "Mozilla", "Firefox", "Profiles")}
     case "darwin":
-        return FirefoxProfilesDefaultImpl{filepath.Join(userHome, "Library/Application Support/Firefox/Profiles")}
+        return FirefoxProfilesDefaultImpl{
+            filepath.Join(userHome, "Library", "Application Support", "Firefox", "Profiles")}
     case "linux":
-        return FirefoxProfilesDefaultImpl{filepath.Join(userHome, ".mozilla/firefox")}
+        return FirefoxProfilesDefaultImpl{filepath.Join(userHome, ".mozilla", "firefox")}
     default:
         return FirefoxProfilesDefaultImpl{}
     }
@@ -55,30 +57,43 @@ func (ffxp FirefoxProfilesDefaultImpl) IsProfileUsed(profileName string) (bool, 
     for _, p := range processes {
         name, _ := p.Name()
         args, _ := p.Cmdline()
-        if name == "firefox" && strings.Contains(args, fmt.Sprintf("-P %s", profileName)) {
+        if strings.HasPrefix(name, "firefox") && strings.Contains(args, fmt.Sprintf("-P %s", profileName)) {
             return true, nil
         }
     }
     return false, nil
 }
 
-// GetProfilesList returns the list of existing Firefox profiles.
+// GetProfilesList returns the list of existing folders in Firefox profiles dir
+// that match the profiles name pattern.
 func (ffxp FirefoxProfilesDefaultImpl) GetProfilesList() ([]string, error) {
+    regex := regexp.MustCompile(`^.*\..*$`)
+    return getDirsMatchingRegex(ffxp.ProfilesPath, regex)
+}
+
+// GetProfilesPath returns the Firefox profiles path.
+func (ffxp FirefoxProfilesDefaultImpl) GetProfilesPath() string {
+    return ffxp.ProfilesPath
+}
+
+// GetProfilesMatching returns the list of existing folders in Firefox profiles dir
+// that match the regex parameter.
+func (ffxp FirefoxProfilesDefaultImpl) GetProfilesMatching(regex *regexp.Regexp) ([]string, error) {
+    return getDirsMatchingRegex(ffxp.ProfilesPath, regex)
+}
+
+// getDirsMatchingRegex returns the list of folders located at root, which match the regex
+func getDirsMatchingRegex(root string, regex *regexp.Regexp) ([]string, error) {
     result := make([]string, 0)
-    files, err := ioutil.ReadDir(ffxp.ProfilesPath)
+    files, err := ioutil.ReadDir(root)
     if err != nil {
-        return result, errors.New("impossible d'accéder au répertoire " + ffxp.ProfilesPath)
+        return result, errors.New("impossible d'accéder au répertoire " + root)
     }
     for _, f := range files {
-        matched, _ := regexp.Match(`^.*\..*$`, []byte(f.Name()))
+        matched := regex.Match([]byte(f.Name()))
         if matched && f.IsDir() {
             result = append(result, f.Name())
         }
     }
     return result, nil
-}
-
-// GetProfilesPath returns the profiles path.
-func (ffxp FirefoxProfilesDefaultImpl) GetProfilesPath() string {
-    return ffxp.ProfilesPath
 }
