@@ -11,7 +11,4 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
-      - '^build:'
-      - '^ci:'
+      - '^chore:'
