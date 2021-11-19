@@ -97,7 +97,7 @@ func getDirsMatchingRegexInFolder(root string, regex *regexp.Regexp) ([]string, 
     for _, f := range files {
         matched := regex.MatchString(f.Name())
         if matched && f.IsDir() {
-            result = append(result, f.Name())
+            result = append(result, filepath.Join(root, f.Name()))
         }
     }
     return result, nil
@@ -108,7 +108,6 @@ func getDirsMatchingRegexInFolders(roots []string, regex *regexp.Regexp) ([]stri
     result := make([]string, 0)
     for _, root := range roots {
         matchingDirs, _ := getDirsMatchingRegexInFolder(root, regex)
-
         result = append(result, matchingDirs...)
     }
     return result, nil

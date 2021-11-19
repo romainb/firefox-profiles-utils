@@ -3,6 +3,7 @@ package profiles
 import (
     "os"
     "path"
+    "path/filepath"
     "regexp"
     "testing"
 
@@ -60,10 +61,10 @@ func (s *FirefoxProfilesSuite) TearDownTest() {
 func (s *FirefoxProfilesSuite) TestFirefoxProfilesDefaultImpl_GetProfilesList() {
     ffxp := NewWithCustomPath([]string{testTmpDir, testTmpDir2})
     foundProfiles, _ := ffxp.GetProfilesList()
-    assert.Contains(s.T(), foundProfiles, "profile.1", "profile.1 should be returned")
-    assert.Contains(s.T(), foundProfiles, "profile.2", "profile.2 should be returned")
-    assert.Contains(s.T(), foundProfiles, "profile.3", "profile.3 should be returned")
-    assert.Contains(s.T(), foundProfiles, "profile.4", "profile.3 should be returned")
+    assert.Contains(s.T(), foundProfiles, filepath.Join(testTmpDir, "profile.1"), "profile.1 should be returned")
+    assert.Contains(s.T(), foundProfiles, filepath.Join(testTmpDir, "profile.2"), "profile.2 should be returned")
+    assert.Contains(s.T(), foundProfiles, filepath.Join(testTmpDir, "profile.3"), "profile.3 should be returned")
+    assert.Contains(s.T(), foundProfiles, filepath.Join(testTmpDir2, "profile.4"), "profile.3 should be returned")
     assert.NotContains(s.T(), foundProfiles, "not_a_profile", "not_a_profiles should not be returned")
 }
 
@@ -72,7 +73,7 @@ func (s *FirefoxProfilesSuite) TestGetProfilesDirMatching() {
     ffxp := NewWithCustomPath([]string{testTmpDir})
     foundProfiles, err := ffxp.GetProfilesMatching(regexp.MustCompile(`^not_a.*$`))
     assert.Nil(s.T(), err)
-    assert.Contains(s.T(), foundProfiles, "not_a_profile", "profile.3 should be returned")
+    assert.Contains(s.T(), foundProfiles, filepath.Join(testTmpDir, "not_a_profile"), "not_a_profile should be returned")
 }
 
 // Si le répertoire de profils n'existe pas on retourne une collection vide et pas d'erreur
