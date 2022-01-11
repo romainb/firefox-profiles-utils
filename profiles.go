@@ -3,7 +3,6 @@ package profiles
 import (
     "errors"
     "fmt"
-    "io/ioutil"
     "os"
     "path/filepath"
     "regexp"
@@ -15,9 +14,19 @@ import (
 
 // FirefoxProfiles interfaces Firefox profiles related operations.
 type FirefoxProfiles interface {
+
+    // IsProfileUsed returns true if the specified profile is currently used.
     IsProfileUsed(profileName string) (bool, error)
+
+    // GetProfilesList returns the list of existing folders in Firefox profiles dir
+    // that match the profiles name pattern.
     GetProfilesList() ([]string, error)
+
+    // GetProfilesPath returns the Firefox profiles path.
     GetProfilesPath() string
+
+    // GetProfilesMatching returns the list of existing folders in Firefox profiles dir
+    // that match the regex parameter.
     GetProfilesMatching(regex *regexp.Regexp) ([]string, error)
 }
 
@@ -48,7 +57,6 @@ func NewWithCustomPath(profilesPath string) FirefoxProfiles {
     return &FirefoxProfilesDefaultImpl{ProfilesPath: profilesPath}
 }
 
-// IsProfileUsed returns true if the specified profile is currently used.
 func (ffxp FirefoxProfilesDefaultImpl) IsProfileUsed(profileName string) (bool, error) {
     processes, err := process.Processes()
     if err != nil {
@@ -64,20 +72,15 @@ func (ffxp FirefoxProfilesDefaultImpl) IsProfileUsed(profileName string) (bool, 
     return false, nil
 }
 
-// GetProfilesList returns the list of existing folders in Firefox profiles dir
-// that match the profiles name pattern.
 func (ffxp FirefoxProfilesDefaultImpl) GetProfilesList() ([]string, error) {
     regex := regexp.MustCompile(`^.*\..*$`)
     return getDirsMatchingRegex(ffxp.ProfilesPath, regex)
 }
 
-// GetProfilesPath returns the Firefox profiles path.
 func (ffxp FirefoxProfilesDefaultImpl) GetProfilesPath() string {
     return ffxp.ProfilesPath
 }
 
-// GetProfilesMatching returns the list of existing folders in Firefox profiles dir
-// that match the regex parameter.
 func (ffxp FirefoxProfilesDefaultImpl) GetProfilesMatching(regex *regexp.Regexp) ([]string, error) {
     return getDirsMatchingRegex(ffxp.ProfilesPath, regex)
 }
@@ -85,12 +88,12 @@ func (ffxp FirefoxProfilesDefaultImpl) GetProfilesMatching(regex *regexp.Regexp)
 // getDirsMatchingRegex returns the list of folders located at root, which match the regex
 func getDirsMatchingRegex(root string, regex *regexp.Regexp) ([]string, error) {
     result := make([]string, 0)
-    files, err := ioutil.ReadDir(root)
+    files, err := os.ReadDir(root)
     if err != nil {
         return result, errors.New("impossible d'accéder au répertoire " + root)
     }
     for _, f := range files {
-        matched := regex.Match([]byte(f.Name()))
+        matched := regex.MatchString(f.Name())
         if matched && f.IsDir() {
             result = append(result, f.Name())
         }
