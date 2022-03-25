@@ -5,7 +5,7 @@ jobs:
   goreleaser-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       # Runs a single command using the runners shell
       - name: GoReleaser check
@@ -18,28 +18,26 @@ jobs:
   golangci:
     strategy:
       matrix:
-        go-version: [ 1.17.x ]
+        go-version: [ 1.18.x ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     name: lint
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
-        with:
-          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v1.29
+        uses: reviewdog/action-golangci-lint@v2
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: [ '1.17' ]
+        go: [ '1.18' ]
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go }}
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Test
         run: go test
